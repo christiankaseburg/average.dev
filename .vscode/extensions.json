@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    // official VS Code extension for Nx.
+    // It provides a rich UI wrapper for your Nx workspace
+    "nrwl.angular-console",
+    "esbenp.prettier-vscode",
+    "golang.go",
+    "dbaeumer.vscode-eslint"
+  ]
+}
