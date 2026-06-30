@@ -1,0 +1,31 @@
+name: Test
+
+on:
+  workflow_call:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Derive appropriate SHAs for Nx
+        uses: nrwl/nx-set-shas@v4
+
+      - name: Run Linting
+        run: yarn nx affected -t lint
+
+      - name: Run Tests
+        run: yarn nx affected -t test

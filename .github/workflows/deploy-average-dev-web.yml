@@ -1,0 +1,78 @@
+name: Deploy average-dev-web
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: "The environment to deploy (e.g., dev, prod)"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Derive appropriate SHAs for Nx
+        uses: nrwl/nx-set-shas@v4
+
+      - name: Build Web App (Affected Only)
+        run: VITE_APP_VERSION=${{ github.sha }} yarn nx affected -t build --skip-nx-cache
+
+      # The following steps only run if a build actually occurred (i.e. dist/ exists).
+      # If the app wasn't affected by the commit, it won't deploy stale code.
+      - name: Check if App was built
+        id: check_build
+        run: |
+          if [ -d "dist/apps/average-dev-web" ]; then
+            echo "built=true" >> $GITHUB_OUTPUT
+          else
+            echo "built=false" >> $GITHUB_OUTPUT
+            echo "App was not affected by this commit. Skipping sync."
+          fi
+
+      - name: Configure AWS Credentials
+        if: steps.check_build.outputs.built == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-web-${{ inputs.environment }}
+          aws-region: us-east-1
+
+      - name: Sync Hashed Assets to S3
+        if: steps.check_build.outputs.built == 'true'
+        run: |
+          aws s3 sync dist/apps/average-dev-web s3://average-dev-web-${{ inputs.environment }}/${{ github.sha }} \
+            --cache-control "public, max-age=31536000, immutable"
+
+      - name: Sync Entry Point to S3
+        if: steps.check_build.outputs.built == 'true'
+        run: |
+          aws s3 cp dist/apps/average-dev-web/index.html s3://average-dev-web-${{ inputs.environment }}/index.html \
+            --cache-control "public, max-age=0, must-revalidate"
+
+      - name: Invalidate CloudFront
+        if: steps.check_build.outputs.built == 'true'
+        run: |
+          # Use dynamic lookup to find the CloudFront ID for this specific domain environment
+          DOMAIN="${{ inputs.environment == 'prod' && 'average.dev' || 'dev.average.dev' }}"
+          DIST_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items!=null && contains(Aliases.Items, '${DOMAIN}')].Id" --output text)
+          if [ -n "$DIST_ID" ] && [ "$DIST_ID" != "None" ]; then
+            aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/index.html"
+          fi
