@@ -8,7 +8,9 @@ We use a single-account architecture organized into environments using directori
 
 - `modules/`: Reusable Tofu components (e.g., static web app, DNS setup).
 - `env/dev/`: Instantiates modules for the `dev` environment (`dev.average.dev`).
-- `env/prod/`: Instantiates modules for the `prod` environment (`average.dev`).
+- `infra/env/prod/`: Instantiates modules for the `prod` environment (`average.dev`).
+
+
 
 ## Adding Infrastructure for a New App
 
