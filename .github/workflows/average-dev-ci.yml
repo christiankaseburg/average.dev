@@ -1,0 +1,45 @@
+name: Average Dev CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  deploy-dev-infra:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-infra.yml
+    with:
+      environment: dev
+    secrets: inherit
+
+  deploy-dev-app:
+    needs: deploy-dev-infra
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-average-dev-web.yml
+    with:
+      environment: dev
+    secrets: inherit
+
+  deploy-prod-infra:
+    needs: deploy-dev-app
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-infra.yml
+    with:
+      environment: prod
+    secrets: inherit
+
+  deploy-prod-app:
+    needs: deploy-prod-infra
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-average-dev-web.yml
+    with:
+      environment: prod
+    secrets: inherit

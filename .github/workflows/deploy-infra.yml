@@ -1,0 +1,48 @@
+name: Deploy Infrastructure
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: "The environment to deploy (e.g., dev, prod)"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-infra:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment == 'prod' && 'production' || '' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if Infrastructure changed
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            infra/**
+
+      - name: Configure AWS Credentials
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-web-${{ inputs.environment }}
+          aws-region: us-east-1
+
+      - name: Setup OpenTofu
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: opentofu/setup-opentofu@v1
+
+      - name: Tofu Init and Apply
+        if: steps.changed-files.outputs.any_changed == 'true'
+        working-directory: infra/env/${{ inputs.environment }}
+        run: |
+          tofu init
+          tofu apply -auto-approve
