@@ -1,6 +1,7 @@
 import styles from './app.module.scss';
 
 export function App() {
+  // Trigger deployment
   const currentYear = new Date().getFullYear();
   
   return (
