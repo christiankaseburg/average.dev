@@ -1,0 +1,10 @@
+name: 'Bootstrap Build Pi'
+description: 'Bootstraps system dependencies on the build Raspberry Pi (Go, Node, Yarn, Docker)'
+runs:
+  using: 'composite'
+  steps:
+    - name: Run build bootstrap script
+      run: |
+        chmod +x ./scripts/bootstrap-build-pi.sh
+        ./scripts/bootstrap-build-pi.sh
+      shell: bash

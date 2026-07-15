@@ -1,0 +1,28 @@
+name: Bootstrap Pi Servers
+
+on:
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap-build:
+    name: Bootstrap Build Server
+    runs-on: [self-hosted, pi-build-server]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Build Bootstrap
+        uses: ./.github/actions/bootstrap-build-pi
+
+  bootstrap-host:
+    name: Bootstrap Hosting Server
+    runs-on: [self-hosted, pi-host-server]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Host Bootstrap
+        uses: ./.github/actions/bootstrap-host-pi

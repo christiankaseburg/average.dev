@@ -1,0 +1,10 @@
+name: 'Bootstrap Host Pi'
+description: 'Bootstraps system dependencies on the hosting Raspberry Pi (Docker, Compose)'
+runs:
+  using: 'composite'
+  steps:
+    - name: Run host bootstrap script
+      run: |
+        chmod +x ./scripts/bootstrap-host-pi.sh
+        ./scripts/bootstrap-host-pi.sh
+      shell: bash
