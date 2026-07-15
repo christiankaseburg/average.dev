@@ -1,0 +1,93 @@
+name: Deploy Home Lab
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-test:
+    name: Build & Test on Build Pi
+    runs-on: [self-hosted, pi-build-server]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bootstrap Build Pi Dependencies
+        uses: ./.github/actions/bootstrap-pi
+        with:
+          role: build
+
+      - name: Build React Web App (home-web)
+        uses: ./.github/actions/build-web
+
+      - name: Upload Web Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: home-web-dist
+          path: dist/apps/home-web
+          retention-days: 7
+
+      - name: Build & Push Go API (home-api)
+        uses: ./.github/actions/build-api
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          image_name: christiankaseburg/home-api
+
+  deploy:
+    name: Deploy to Hosting Pi
+    needs: build-and-test
+    runs-on: [self-hosted, pi-host-server]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Bootstrap Hosting Pi Dependencies
+        uses: ./.github/actions/bootstrap-pi
+        with:
+          role: host
+
+      - name: Download Web Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: home-web-dist
+          path: dist/apps/home-web
+
+      - name: Serve Static Files
+        run: |
+          echo "Ensuring web hosting directories exist..."
+          sudo mkdir -p /var/www/home-web
+          sudo chown -R $USER:$USER /var/www/home-web
+          sudo chmod -R 755 /var/www/home-web
+          echo "Clearing existing web assets..."
+          rm -rf /var/www/home-web/*
+          echo "Copying new build assets..."
+          cp -r dist/apps/home-web/* /var/www/home-web/
+          echo "Assets updated successfully."
+        shell: bash
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull & Deploy Stack
+        run: |
+          cd apps
+          echo "Pulling latest docker images..."
+          docker compose -f home-compose.yml pull
+          echo "Starting containers..."
+          docker compose -f home-compose.yml up -d --remove-orphans
+          echo "Deployment completed successfully!"
+        shell: bash

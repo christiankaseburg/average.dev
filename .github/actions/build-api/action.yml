@@ -1,0 +1,31 @@
+name: 'Build Go API'
+description: 'Builds and pushes the home-api Docker image'
+inputs:
+  registry:
+    description: 'Docker registry'
+    required: true
+    default: 'ghcr.io'
+  username:
+    description: 'Registry username'
+    required: true
+  password:
+    description: 'Registry password'
+    required: true
+  image_name:
+    description: 'Target image name'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Log in to Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ inputs.username }}
+        password: ${{ inputs.password }}
+
+    - name: Build and Push Docker Image
+      run: |
+        docker build -t ${{ inputs.registry }}/${{ inputs.image_name }}:latest -f apps/home-api/Dockerfile .
+        docker push ${{ inputs.registry }}/${{ inputs.image_name }}:latest
+      shell: bash

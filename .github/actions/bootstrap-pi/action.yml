@@ -1,0 +1,14 @@
+name: 'Bootstrap Pi'
+description: 'Bootstraps system dependencies on the target Raspberry Pi based on its role'
+inputs:
+  role:
+    description: 'The server role: build or host'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Run bootstrap script
+      run: |
+        chmod +x ./scripts/bootstrap-pi.sh
+        ./scripts/bootstrap-pi.sh ${{ inputs.role }}
+      shell: bash

@@ -1,0 +1,18 @@
+name: 'Build Web App'
+description: 'Installs dependencies and builds the home-web React application'
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'yarn'
+
+    - name: Install Dependencies
+      run: yarn install --frozen-lockfile
+      shell: bash
+
+    - name: Build Web App
+      run: yarn nx build home-web
+      shell: bash
