@@ -20,8 +20,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Bootstrap Build Pi Dependencies
-        uses: ./.github/actions/bootstrap-build-pi
 
       - name: Build React Web App (home-web)
         uses: ./.github/actions/build-web
@@ -49,8 +47,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Bootstrap Hosting Pi Dependencies
-        uses: ./.github/actions/bootstrap-host-pi
 
       - name: Download Web Build Artifacts
         uses: actions/download-artifact@v4
@@ -60,10 +56,6 @@ jobs:
 
       - name: Serve Static Files
         run: |
-          echo "Ensuring web hosting directories exist..."
-          sudo mkdir -p /var/www/home-web
-          sudo chown -R $USER:$USER /var/www/home-web
-          sudo chmod -R 755 /var/www/home-web
           echo "Clearing existing web assets..."
           rm -rf /var/www/home-web/*
           echo "Copying new build assets..."
