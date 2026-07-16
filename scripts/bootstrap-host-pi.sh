@@ -42,11 +42,6 @@ else
   echo "Docker Compose installed successfully."
 fi
 
-# 5. Setup static site directory
-echo "Setting up web app hosting directory (/var/www/home-web)..."
-sudo mkdir -p /var/www/home-web
-sudo chown -R "$USER":"$USER" /var/www/home-web
-sudo chmod -R 755 /var/www/home-web
 
 echo "===================================================="
 echo "    Hosting Server Bootstrap Complete!"

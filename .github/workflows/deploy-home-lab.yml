@@ -57,9 +57,10 @@ jobs:
       - name: Serve Static Files
         run: |
           echo "Clearing existing web assets..."
-          rm -rf /var/www/home-web/*
+          rm -rf apps/home-web-dist
+          mkdir -p apps/home-web-dist
           echo "Copying new build assets..."
-          cp -r dist/apps/home-web/* /var/www/home-web/
+          cp -r dist/apps/home-web/* apps/home-web-dist/
           echo "Assets updated successfully."
         shell: bash
 

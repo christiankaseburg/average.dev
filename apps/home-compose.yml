@@ -16,7 +16,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - /var/www/home-web:/var/www/home-web
+      - ./home-web-dist:/var/www/home-web
       - ./Caddyfile:/etc/caddy/Caddyfile
     depends_on:
       - home-api
