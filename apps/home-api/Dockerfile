@@ -3,8 +3,8 @@ FROM golang:1.22-alpine AS builder
 
 WORKDIR /app
 
-# Copy dependency definition
-COPY apps/home-api/go.mod ./
+# Copy dependency definitions
+COPY apps/home-api/go.mod apps/home-api/go.sum ./
 RUN go mod download
 
 # Copy source code
