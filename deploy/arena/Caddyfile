@@ -1,0 +1,21 @@
+:80 {
+    # WebSocket traffic to Colyseus game server
+    handle /ws/* {
+        reverse_proxy arena-api:2567
+    }
+
+    # Colyseus matchmaking API
+    handle /matchmake/* {
+        reverse_proxy arena-api:2567
+    }
+
+    # Colyseus monitor (development)
+    handle /colyseus/* {
+        reverse_proxy arena-api:2567
+    }
+
+    # Static game client files
+    root * /var/www/arena-web
+    file_server
+    try_files {path} /index.html
+}

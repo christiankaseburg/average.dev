@@ -1,0 +1,19 @@
+.themeToggle {
+  background: rgba(var(--glass-bg-rgb), 0.1);
+  border: 1px solid rgba(var(--glass-border-rgb), 0.2);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text);
+  transition: all 0.2s ease-in-out;
+  backdrop-filter: blur(8px);
+
+  &:hover {
+    background: rgba(var(--glass-bg-rgb), 0.2);
+    transform: scale(1.1);
+  }
+}

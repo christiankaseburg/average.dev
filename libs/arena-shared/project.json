@@ -1,0 +1,22 @@
+{
+  "name": "arena-shared",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/arena-shared/src",
+  "projectType": "library",
+  "tags": ["scope:arena", "type:util"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["libs/arena-shared/**/*.ts"]
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p tsconfig.json",
+        "cwd": "libs/arena-shared"
+      }
+    }
+  }
+}

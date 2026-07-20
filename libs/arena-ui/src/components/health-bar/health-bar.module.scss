@@ -1,0 +1,36 @@
+.healthBarContainer {
+  position: relative;
+  width: 100%;
+  height: 24px;
+  background: rgba(var(--glass-input-bg-rgb), 0.8);
+  border: 1px solid rgba(var(--glass-input-border-rgb), 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(var(--shadow-rgb), 0.5);
+  font-family: var(--font-family, 'Inter', sans-serif);
+
+  .fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-health), #81c784);
+    transition: width 0.3s ease-out;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+
+    &.low {
+      background: linear-gradient(90deg, var(--color-danger), #ff8a65);
+      box-shadow: 0 0 10px rgba(var(--color-accent-rgb), 0.5);
+    }
+  }
+
+  .text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff; /* keep health bar text white for contrast */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+  }
+}

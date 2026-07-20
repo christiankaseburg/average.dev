@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'apps/home-web/**'
+      - 'apps/home-api/**'
+      - 'deploy/home/**'
+      - '.github/workflows/deploy-home-lab.yml'
+      - '.github/actions/build-web/**'
+      - '.github/actions/build-api/**'
   workflow_dispatch: # Allow manual trigger
 
 permissions:
@@ -54,13 +61,13 @@ jobs:
           name: home-web-dist
           path: dist/apps/home-web
 
-      - name: Serve Static Files
+      - name: Update Static Web Files
         run: |
           echo "Clearing existing web assets..."
-          rm -rf apps/home-web-dist
-          mkdir -p apps/home-web-dist
+          rm -rf deploy/home/home-web-dist
+          mkdir -p deploy/home/home-web-dist
           echo "Copying new build assets..."
-          cp -r dist/apps/home-web/* apps/home-web-dist/
+          cp -r dist/apps/home-web/* deploy/home/home-web-dist/
           echo "Assets updated successfully."
         shell: bash
 
@@ -73,10 +80,10 @@ jobs:
 
       - name: Pull & Deploy Stack
         run: |
-          cd apps
+          cd deploy/home
           echo "Pulling latest docker images..."
-          docker compose -f home-compose.yml pull
+          docker compose pull
           echo "Starting containers..."
-          docker compose -f home-compose.yml up -d --remove-orphans
+          docker compose up -d --remove-orphans
           echo "Deployment completed successfully!"
         shell: bash

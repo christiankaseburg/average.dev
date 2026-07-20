@@ -142,6 +142,76 @@ Nx Console is an editor extension that enriches your developer experience. It le
 
 [Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 
+## 🏹 Arena
+
+**Arena** is a medieval top-down multiplayer battle royale built inside this monorepo. Players compete in real time on a shrinking map until only one survives.
+
+**Tech overview:** an authoritative [Colyseus 0.17](https://docs.colyseus.io/) game server (`arena-api`) pushes delta-patched state to a [Phaser 4](https://phaser.io/) game client (`arena-web`) at 20 Hz. React handles the UI shell around the Phaser canvas. Shared types and game constants live in `arena-shared` so both ends of the wire agree on the same definitions.
+
+### Packages
+
+| Package | Path | Description |
+|---|---|---|
+| `arena-api` | [`apps/arena-api`](apps/arena-api/README.md) | Colyseus game server |
+| `arena-web` | [`apps/arena-web`](apps/arena-web/README.md) | Phaser + React game client |
+| `arena-shared` | [`libs/arena-shared`](libs/arena-shared/README.md) | Shared types & constants |
+| `arena-ui` | [`libs/arena-ui`](libs/arena-ui/README.md) | Shared React UI component library |
+
+### Quick Start
+
+Run both server and client in separate terminals:
+
+```sh
+# Terminal 1 — game server
+yarn nx dev arena-api
+
+# Terminal 2 — game client (requires arena-api to be running)
+yarn nx serve arena-web
+```
+
+The client is served at `http://localhost:4200`. The Colyseus server runs at `ws://localhost:2567`. In development, the Colyseus monitor is available at `http://localhost:2567/colyseus`.
+
+---
+
+### 🧟 NPC System
+
+Arena's NPC system uses a **server-authoritative, client-rendered** architecture split across three packages.
+
+#### How it works
+
+```
+arena-api (server)          arena-shared (contract)       arena-web (client)
+──────────────────          ───────────────────────       ──────────────────
+NpcState schema      ──▶   NpcSnapshot interface   ──▶   NpcEntity renders
+spawnNpcs() spawns           NpcAction type               NpcSprite animates
+  on room create             ('idle'|'walking'|            BootScene loads
+AI updates action             'attacking'|'hurt'|          assets + registers
+  on each tick               'dead')                      Phaser animations
+```
+
+The server sends a **high-level action** (`NpcAction`), not an animation key. The client maps this to the specific animation — for example, randomly choosing `attack1` or `attack2` when the action is `'attacking'`. This keeps bandwidth low and gives the client control over visual variety.
+
+#### Adding a new NPC type
+
+> See `.agents/rules/npc-system.md` for the full step-by-step guide.
+
+1. **Export from Aseprite** → JSON Hash format, Tags checked, item filename `{title} {frame}.aseprite`
+2. **Place assets** in `public/npc/<folder>/` (PNG + JSON + .aseprite source)
+3. **Add to `NPC_REGISTRY`** in `apps/arena-web/src/game/sprites/NpcDefinition.ts` with asset paths and Aseprite tag name mappings
+4. **Add to `NPC_TYPES`** in `libs/arena-shared/src/constants/npc.constants.ts`
+
+No other files need to change — `BootScene` discovers new types from `NPC_REGISTRY` automatically.
+
+#### Key architecture constraints
+
+- **Assets in `public/npc/`**, not `src/assets/` — Phaser fetches them at runtime, Vite does not bundle them
+- **`BootScene` owns the full pipeline** — it loads PNG+JSON, builds atlas textures, and registers all Phaser animations globally before `GameScene` starts
+- **`NpcSprite` is presentation-only** — it calls `play()` on pre-registered animations; it does not touch assets or JSON
+- **`NPC_TYPES` (server) must match `NPC_REGISTRY` keys (client)** — keep these in sync when adding new types
+
+---
+
+
 ## Useful links
 
 Learn more:

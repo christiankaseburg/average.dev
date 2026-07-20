@@ -1,0 +1,64 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Arena: Start Dev (Full Stack)",
+      "dependsOn": ["Arena: Start API", "Arena: Start Web"],
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Arena: Start API",
+      "type": "shell",
+      "command": "yarn nx dev arena-api",
+      "isBackground": true,
+      "problemMatcher": [
+        {
+          "pattern": {
+            "regexp": ".",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          },
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": ".",
+            "endsPattern": "listening on port"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Arena: Start Web",
+      "type": "shell",
+      "command": "yarn nx serve arena-web",
+      "isBackground": true,
+      "problemMatcher": [
+        {
+          "pattern": {
+            "regexp": ".",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          },
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": ".",
+            "endsPattern": "ready in"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Arena: Build All",
+      "type": "shell",
+      "command": "yarn nx run-many -t build --projects=arena-api,arena-web,arena-shared",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}

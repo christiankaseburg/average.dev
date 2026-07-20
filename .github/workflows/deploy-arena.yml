@@ -1,0 +1,89 @@
+name: Deploy Arena
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/arena-api/**'
+      - 'apps/arena-web/**'
+      - 'libs/arena-shared/**'
+      - 'libs/arena-ui/**'
+      - 'deploy/arena/**'
+      - '.github/workflows/deploy-arena.yml'
+      - '.github/actions/build-arena-api/**'
+      - '.github/actions/build-arena-web/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Build on Pi Build Server
+    runs-on: [self-hosted, pi-build-server]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build Arena Web
+        uses: ./.github/actions/build-arena-web
+
+      - name: Upload Web Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arena-web-dist
+          path: dist/apps/arena-web
+          retention-days: 7
+
+      - name: Build & Push Arena API Docker Image
+        uses: ./.github/actions/build-arena-api
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          image_name: christiankaseburg/arena-api
+
+  deploy:
+    name: Deploy to Hosting Pi
+    needs: build
+    runs-on: [self-hosted, pi-host-server]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Web Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: arena-web-dist
+          path: dist/apps/arena-web
+
+      - name: Update Static Web Files
+        run: |
+          echo "Clearing existing web assets..."
+          rm -rf deploy/arena/arena-web-dist
+          mkdir -p deploy/arena/arena-web-dist
+          echo "Copying new build assets..."
+          cp -r dist/apps/arena-web/* deploy/arena/arena-web-dist/
+          echo "Assets updated successfully."
+        shell: bash
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull & Deploy Arena Stack
+        run: |
+          cd deploy/arena
+          echo "Pulling latest docker images..."
+          docker compose pull
+          echo "Starting containers..."
+          docker compose up -d --remove-orphans
+          echo "Deployment completed successfully!"
+        shell: bash

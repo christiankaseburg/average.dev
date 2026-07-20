@@ -1,0 +1,31 @@
+{
+  "name": "@average.dev/arena-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Arena medieval battle royale — authoritative game server (Colyseus)",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "concurrently \"tsc -w -p tsconfig.json\" \"nodemon dist/index.js\"",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@colyseus/core": "^0.17.0",
+    "@colyseus/monitor": "^0.17.0",
+    "@colyseus/schema": "^4.0.0",
+    "@colyseus/ws-transport": "^0.17.0",
+    "colyseus": "^0.17.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "concurrently": "^10.0.3",
+    "nodemon": "^3.1.14",
+    "tsx": "^4.19.0",
+    "typescript": "~5.9.2",
+    "vitest": "^3.2.0"
+  }
+}

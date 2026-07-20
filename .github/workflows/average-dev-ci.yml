@@ -47,3 +47,9 @@ jobs:
     with:
       environment: prod
     secrets: inherit
+
+  deploy-arena:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-arena.yml
+    secrets: inherit
