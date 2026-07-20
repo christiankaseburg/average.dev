@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   home-api:
     image: ghcr.io/christiankaseburg/home-api:latest

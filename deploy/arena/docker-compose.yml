@@ -1,0 +1,27 @@
+services:
+  arena-api:
+    image: ghcr.io/christiankaseburg/arena-api:latest
+    restart: always
+    ports:
+      - "2567:2567"
+    environment:
+      - NODE_ENV=production
+      - PORT=2567
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:2567/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  arena-caddy:
+    image: caddy:latest
+    restart: always
+    ports:
+      - "3000:80"
+    volumes:
+      - ./arena-web-dist:/var/www/arena-web
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    depends_on:
+      arena-api:
+        condition: service_healthy

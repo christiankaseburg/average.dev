@@ -1,0 +1,49 @@
+{
+  "name": "arena-api",
+  "projectType": "application",
+  "sourceRoot": "apps/arena-api/src",
+  "tags": ["scope:arena", "type:app"],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn tsc -p tsconfig.json",
+        "cwd": "apps/arena-api"
+      }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn tsx --watch src/index.ts",
+        "cwd": "apps/arena-api"
+      }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node dist/index.js",
+        "cwd": "apps/arena-api"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["apps/arena-api/src/**/*.ts"]
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn tsc --noEmit -p tsconfig.json",
+        "cwd": "apps/arena-api"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx vitest run",
+        "cwd": "apps/arena-api"
+      }
+    }
+  }
+}
