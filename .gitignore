@@ -62,3 +62,8 @@ override.tf.json
 terraform.rc
 
 storybook-static
+
+# Env files
+.env
+.env.*
+!.env.example

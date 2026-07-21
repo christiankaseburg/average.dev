@@ -1,0 +1,22 @@
+name: home-web
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: home-web-postgres
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: home
+    volumes:
+      - home_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d home"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  home_postgres_data:

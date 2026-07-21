@@ -59,6 +59,57 @@
       "command": "yarn nx run-many -t build --projects=arena-api,arena-web,arena-shared",
       "group": "build",
       "problemMatcher": []
+    },
+    {
+      "label": "Home: Start Dev (Full Stack)",
+      "dependsOn": ["Home: Start API", "Home: Start Web"],
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Home: Start API",
+      "type": "shell",
+      "command": "yarn nx serve home-api",
+      "isBackground": true,
+      "problemMatcher": [
+        {
+          "pattern": {
+            "regexp": ".",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          },
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": ".",
+            "endsPattern": "Starting home-api on port"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Home: Start Web",
+      "type": "shell",
+      "command": "yarn nx serve home-web",
+      "isBackground": true,
+      "problemMatcher": [
+        {
+          "pattern": {
+            "regexp": ".",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          },
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": ".",
+            "endsPattern": "ready in"
+          }
+        }
+      ]
     }
   ]
 }

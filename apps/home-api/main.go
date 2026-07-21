@@ -1,48 +1,56 @@
 package main
 
 import (
+	"context"
 	"log"
-	"net/http"
 	"os"
 
+	"average.dev/apps/home-api/internal/auth"
+	"average.dev/apps/home-api/internal/auth/providers/google"
+	"average.dev/apps/home-api/internal/config"
+	repoGenerated "average.dev/apps/home-api/internal/repository/generated"
+	"average.dev/apps/home-api/internal/server"
+	"average.dev/apps/home-api/internal/service"
+
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Set Gin mode
+	_ = godotenv.Overload()
+
 	if os.Getenv("GIN_MODE") == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	r := gin.Default()
+	cfg := config.Load()
+	ctx := context.Background()
 
-	// CORS middleware
-	r.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
+	providerService := auth.NewProviderService()
+	if cfg.GoogleClientID != "" {
+		googleProvider, err := google.NewProvider(ctx, cfg)
+		if err != nil {
+			log.Fatalf("Failed to initialize google provider: %v", err)
 		}
+		providerService.Register("google", googleProvider)
+	}
 
-		c.Next()
-	})
+	dbURL := cfg.DatabaseURL
+	if dbURL == "" {
+		dbURL = "postgres://postgres:password@localhost:5432/average_dev?sslmode=disable"
+	}
 
-	// Routes
-	r.GET("/api/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"status": "ok",
-		})
-	})
+	pool, err := pgxpool.New(ctx, dbURL)
+	if err != nil {
+		log.Fatalf("Failed to connect to db: %v", err)
+	}
+	defer pool.Close()
 
-	r.GET("/api/version", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"version": "1.0.0",
-		})
-	})
+	repo := repoGenerated.New(pool)
+	authSvc := service.NewAuthService(repo, providerService, cfg)
+
+	r := server.New(ctx, providerService, authSvc)
 
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -10,6 +10,13 @@
         "cwd": "apps/home-api"
       }
     },
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "go run main.go",
+        "cwd": "apps/home-api"
+      }
+    },
     "test": {
       "executor": "nx:run-commands",
       "options": {
@@ -21,6 +28,34 @@
       "executor": "nx:run-commands",
       "options": {
         "command": "golangci-lint run",
+        "cwd": "apps/home-api"
+      }
+    },
+    "generate:graphql": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "go run github.com/99designs/gqlgen generate",
+        "cwd": "apps/home-api"
+      }
+    },
+    "generate:sqlc": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.27.0 generate",
+        "cwd": "apps/home-api"
+      }
+    },
+    "migrate:up": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "go run github.com/pressly/goose/v3/cmd/goose@v3.24.1 -dir internal/db/migrations postgres \"postgres://postgres:password@localhost:5432/home?sslmode=disable\" up",
+        "cwd": "apps/home-api"
+      }
+    },
+    "migrate:down": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "go run github.com/pressly/goose/v3/cmd/goose@v3.24.1 -dir internal/db/migrations postgres \"postgres://postgres:password@localhost:5432/home?sslmode=disable\" down",
         "cwd": "apps/home-api"
       }
     }

@@ -1,10 +1,22 @@
-import styles from './app.module.scss';
+import { ApolloProvider } from '@apollo/client/react';
+import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { RouterProvider } from 'react-router-dom';
+import { AuthProvider } from '../context/Auth';
+import { ColorModeProvider } from '../context/Theme';
+import { client } from '../graphql/client';
+import { router } from '../pages/Router';
 
 export function App() {
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>Home</h1>
-    </div>
+    <ChakraProvider value={defaultSystem}>
+      <ColorModeProvider>
+        <ApolloProvider client={client}>
+          <AuthProvider>
+            <RouterProvider router={router} />
+          </AuthProvider>
+        </ApolloProvider>
+      </ColorModeProvider>
+    </ChakraProvider>
   );
 }
 

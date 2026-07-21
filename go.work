@@ -1,5 +1,3 @@
-go 1.22.5
+go 1.25.5
 
-use (
-	./apps/home-api
-)
+use ./apps/home-api

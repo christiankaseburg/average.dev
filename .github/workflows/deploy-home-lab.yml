@@ -1,16 +1,6 @@
 name: Deploy Home Lab
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/home-web/**'
-      - 'apps/home-api/**'
-      - 'deploy/home/**'
-      - '.github/workflows/deploy-home-lab.yml'
-      - '.github/actions/build-web/**'
-      - '.github/actions/build-api/**'
   workflow_dispatch: # Allow manual trigger
 
 permissions:
