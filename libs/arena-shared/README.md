@@ -22,7 +22,7 @@ Without a shared library, each end of the network would maintain its own copy of
 PlayerInput, InputCommand, Facing      — input shape sent from client to server
 GamePhase                              — enum used in server state & client UI
 PlayerSnapshot, ZoneSnapshot           — event payloads the server sends to the client
-MAP_WIDTH, MAP_HEIGHT, TILE_SIZE       — map geometry
+WORLD_SIZE, WORLD_HALF_SIZE       — map geometry
 TICK_RATE, TICK_INTERVAL_MS            — must match setSimulationInterval on the server
 PLAYER_SPEED                           — used by server movement & client prediction
 WeaponConfig, WEAPONS                  — weapon stats shared by server combat & client HUD
@@ -60,8 +60,8 @@ WeaponConfig, WEAPONS                  — weapon stats shared by server combat 
 
 | Export | File | Description |
 |---|---|---|
-| `MAP_WIDTH`, `MAP_HEIGHT` | `game.constants.ts` | World dimensions in pixels |
-| `TILE_SIZE` | `game.constants.ts` | Pixels per tile |
+| `WORLD_SIZE`, `WORLD_HALF_SIZE` | `game.constants.ts` | World dimensions in pixels |
+| `WORLD_HALF_SIZE` | `game.constants.ts` | Pixels per tile |
 | `PLAYER_SPEED` | `game.constants.ts` | Pixels per second |
 | `TICK_RATE` | `game.constants.ts` | Server ticks per second (20) |
 | `TICK_INTERVAL_MS` | `game.constants.ts` | `1000 / TICK_RATE` (50 ms) |

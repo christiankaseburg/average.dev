@@ -183,7 +183,7 @@ Arena's NPC system uses a **server-authoritative, client-rendered** architecture
 arena-api (server)          arena-shared (contract)       arena-web (client)
 ──────────────────          ───────────────────────       ──────────────────
 NpcState schema      ──▶   NpcSnapshot interface   ──▶   NpcEntity renders
-spawnNpcs() spawns           NpcAction type               NpcSprite animates
+spawnNpcs (disabled pending 3D implementation)() spawns           NpcAction type               NpcSprite animates
   on room create             ('idle'|'walking'|            BootScene loads
 AI updates action             'attacking'|'hurt'|          assets + registers
   on each tick               'dead')                      Phaser animations

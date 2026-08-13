@@ -10,9 +10,11 @@ export class GameState extends Schema {
   @type({ map: NpcState }) npcs = new MapSchema<NpcState>();
   @type(ZoneState) zone: ZoneState = new ZoneState();
   
-  @type("string") phase!: string; // "waiting", "countdown", "playing", "ended"
+  @type("string") phase!: string;
   @type("uint8") aliveCount!: number;
   @type("uint32") gameTime!: number;
   @type("string") winnerId!: string;
-}
 
+  /** Server-authoritative world size in world units. Clients use this for rendering. */
+  @type("float32") worldSize!: number;
+}

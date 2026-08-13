@@ -133,7 +133,7 @@ The `{title} {frame}.aseprite` item filename is critical — it produces frame k
 | [`libs/arena-shared/src/types/npc.types.ts`](../../../libs/arena-shared/src/types/npc.types.ts) | `NpcSnapshot`, `NpcAction`, `NpcHitEvent` |
 | [`libs/arena-shared/src/constants/npc.constants.ts`](../../../libs/arena-shared/src/constants/npc.constants.ts) | `NPC_TYPES`, `NPC_SPAWN_COUNT` |
 | [`apps/arena-api/src/schemas/npc-state.ts`](../../../apps/arena-api/src/schemas/npc-state.ts) | Colyseus `NpcState` schema |
-| [`apps/arena-api/src/systems/npc-spawner.ts`](../../../apps/arena-api/src/systems/npc-spawner.ts) | `spawnNpcs()` — called in room `onCreate()` |
+| [`apps/arena-api/src/systems/npc-spawner.ts`](../../../apps/arena-api/src/systems/npc-spawner.ts) | `spawnNpcs (disabled pending 3D implementation)()` — called in room `onCreate()` |
 | [`apps/arena-web/src/game/sprites/NpcDefinition.ts`](../../../apps/arena-web/src/game/sprites/NpcDefinition.ts) | `NPC_REGISTRY` — all NPC asset/animation metadata |
 | [`apps/arena-web/src/game/scenes/boot.ts`](../../../apps/arena-web/src/game/scenes/boot.ts) | Loads assets + registers all Phaser animations |
 | [`apps/arena-web/src/game/sprites/NpcSprite.ts`](../../../apps/arena-web/src/game/sprites/NpcSprite.ts) | Presentation layer — calls `play()` only |

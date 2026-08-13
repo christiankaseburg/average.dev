@@ -17,7 +17,7 @@ source of truth for position, health, damage, and win conditions.
 src/
   index.ts            ← Express app + Colyseus server bootstrap + room registration
   config/
-    map.ts            ← MAP_WIDTH, MAP_HEIGHT, TILE_SIZE, collision grid, spawn/chest positions
+    map.ts            ← WORLD_SIZE, WORLD_SIZE, WORLD_HALF_SIZE, 3D bounds clamping, spawn/chest positions
     weapons.ts        ← Re-exports WeaponConfig + WEAPONS from @average.dev/arena-shared
     items.ts          ← ItemConfig interface + ITEMS map (health_potion, swords, armor, etc.)
   rooms/
@@ -32,13 +32,13 @@ src/
     item-state.ts     ← ItemState — id, itemType, x, y, isPickedUp
   systems/
     game-loop.ts      ← GameLoop class — orchestrates all systems at 20 Hz
-    movement.ts       ← processMovement() — velocity, tile collision, facing update
+    movement.ts       ← clampPlayerPosition() — velocity, tile collision, facing update
     combat.ts         ← processAttack() — range, arc, cooldown, damage, kill detection
     zone.ts           ← updateZone() + applyZoneDamage() — shrink phases and DPS
-    loot.ts           ← spawnChests() + handleInteract() — chest spawning and pickup
+    loot.ts           ← spawnChests (disabled pending 3D implementation)() + handleInteract() — chest spawning and pickup
     spawn.ts          ← getSpawnPoint() + respawnPlayer() — spawn point management
   utils/
-    math.ts           ← Vector2, distanceSquared, lerp, clamp, randomInCircle
+    math.ts           ← Vector3, distanceSquaredXZ, distanceSquared3D, lerp, clamp, randomInCircle
     validation.ts     ← sanitizeInput() — clamps and validates raw client InputCommand
 ```
 
@@ -51,7 +51,7 @@ Each `Room` handles the full lifecycle of one match. Rooms are created on demand
 by Colyseus matchmaking when a client calls `joinOrCreate`.
 
 ```
-onCreate  → initialize GameState schema, build collision grid, start GameLoop, spawn chests
+onCreate  → initialize GameState schema, build 3D bounds clamping, start GameLoop, spawn chests
 onJoin    → create PlayerState, assign spawn point, trigger countdown if ≥ 2 players
 onLeave   → mark player dead (isAlive = false)
 onDispose → room garbage collected by Colyseus
@@ -103,15 +103,15 @@ These complement the schema patch (Type A) rather than replacing it.
 
 ## ⚙️ Systems Reference
 
-### movement.ts — `processMovement(player, input, collisionGrid, deltaTime)`
-- Speed: `PLAYER_SPEED` (200 px/s) from `@average.dev/arena-shared`
+### movement.ts — `clampPlayerPosition(player, input, collisionGrid, deltaTime)`
+- Speed: `PLAYER_SPEED` (20 units/s) from `@average.dev/arena-shared`
 - Tile collision: AABB vs grid cell (`collisionGrid[tileY][tileX] === 1`)
-- Map bounds: clamps to `MAP_WIDTH` / `MAP_HEIGHT`
+- Map bounds: clamps to `WORLD_SIZE` / `WORLD_HALF_SIZE`
 - Facing: derived from dominant dx/dy axis, overridable by `input.facing`
 
 ### combat.ts — `processAttack(attacker, allPlayers, gameTime)`
 - Cooldown: `lastAttackTime + weapon.attackSpeed ≤ gameTime`
-- Range: `distanceSquared ≤ weapon.range²`
+- Range: `distanceSquaredXZ ≤ weapon.range²`
 - Arc: 180° facing check (only hits players in the direction the attacker faces)
 - Returns `CombatResult[]` — caller broadcasts `player_hit` for each
 
@@ -127,22 +127,21 @@ to players outside `currentRadius` from `currentCenter`.
 | 3 | 25% | 30 s | 20 |
 | 4 | 5% | 20 s | 40 |
 
-### loot.ts — `spawnChests` / `handleInteract`
+### loot.ts — `spawnChests (disabled pending 3D implementation)` / `handleInteract`
 - Chests spawn at `CHEST_LOCATIONS` (co-located with spawn points at +40, +40 offset)
-- Interact range: 60 px
+- Interact range: 6 units
 - Pickup: weapon → `player.weapon`, armor → `player.armor`, consumable → +20 HP
 
 ---
 
 ## 📐 Map Configuration (`config/map.ts`)
 ```
-MAP_WIDTH  = 2048 px
-MAP_HEIGHT = 2048 px
-TILE_SIZE  = 32 px  →  64×64 tile grid
+WORLD_SIZE = 200 units
+WORLD_HALF_SIZE = 100 units
 ```
-- Collision grid is currently all-zero (fully open map)
+- 3D bounds clamping is currently all-zero (fully open map)
 - 30 random spawn points generated at module load time (seeded per server restart)
-- Do NOT add border walls to the collision grid — they cause client reconciliation jitter
+- Do NOT add border walls to the 3D bounds clamping — they cause client reconciliation jitter
 
 ---
 
@@ -159,9 +158,9 @@ TILE_SIZE  = 32 px  →  64×64 tile grid
 
 ## 🚫 Rules for Future Agents
 1. **Never trust raw client input.** Always pass message data through `sanitizeInput()` before use.
-2. **Keep reducers (systems) pure.** No I/O in `processMovement`, `processAttack`, etc. Side effects (broadcast, state mutation) happen in `GameLoop` or the Room.
+2. **Keep reducers (systems) pure.** No I/O in `clampPlayerPosition`, `processAttack`, etc. Side effects (broadcast, state mutation) happen in `GameLoop` or the Room.
 3. **Do not add `@type` to server-only fields.** Fields without the decorator are invisible to clients — this is intentional for data like `lastAttackTime`.
-4. **Do not add border walls to the collision grid.** The client prediction clamps to map bounds separately; server walls would cause jitter during reconciliation.
+4. **Do not add border walls to the 3D bounds clamping.** The client prediction clamps to map bounds separately; server walls would cause jitter during reconciliation.
 5. **Shared constants and types belong in `@average.dev/arena-shared`**, not duplicated here.
 6. **`sandbox` is dev-only.** The `SandboxRoom` registration is gated by `NODE_ENV !== 'production'`.
 7. **Run `yarn nx typecheck arena-api` after every change.**

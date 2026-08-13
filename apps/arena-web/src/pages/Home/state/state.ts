@@ -6,6 +6,8 @@ export type HomeState = {
   bodyType: string;
   hairStyle: string;
   showCustomize: boolean;
+  showEquipmentViewer: boolean;
+  mapId: string;
 };
 
 export const initialState: HomeState = {
@@ -13,7 +15,9 @@ export const initialState: HomeState = {
   roomCode: '',
   error: '',
   connecting: false,
-  bodyType: 'human_light',
-  hairStyle: 'short_brown',
+  bodyType: '#ffccaa',
+  hairStyle: 'bald',
   showCustomize: false,
+  showEquipmentViewer: false,
+  mapId: 'test-grid',
 };

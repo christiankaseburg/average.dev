@@ -1,6 +1,6 @@
 import { PlayerState } from '../schemas/player-state';
 import { WEAPONS } from '../config/weapons';
-import { distanceSquared } from '../utils/math';
+import { distanceSquaredXZ } from '../utils/math';
 
 export interface CombatResult {
   attackerId: string;
@@ -31,34 +31,20 @@ export function processAttack(
   for (const [id, target] of allPlayers.entries()) {
     if (id === attacker.sessionId || !target.isAlive) continue;
 
-    // Distance check
-    if (distanceSquared(attacker, target) <= rangeSq) {
-      // Facing check (simple: must be in 180 deg arc)
-      let isFacing = false;
-      const dx = target.x - attacker.x;
-      const dy = target.y - attacker.y;
-      
-      switch (attacker.facing) {
-        case "up": isFacing = dy < 0; break;
-        case "down": isFacing = dy > 0; break;
-        case "left": isFacing = dx < 0; break;
-        case "right": isFacing = dx > 0; break;
+    // XZ plane distance check (ignores height difference)
+    if (distanceSquaredXZ(attacker, target) <= rangeSq) {
+      target.health = Math.max(0, target.health - weapon.damage);
+      const killed = target.health === 0;
+      if (killed) {
+        target.isAlive = false;
+        attacker.kills++;
       }
-
-      if (isFacing) {
-        target.health = Math.max(0, target.health - weapon.damage);
-        const killed = target.health === 0;
-        if (killed) {
-          target.isAlive = false;
-          attacker.kills++;
-        }
-        results.push({
-          attackerId: attacker.sessionId,
-          targetId: id,
-          damage: weapon.damage,
-          killed
-        });
-      }
+      results.push({
+        attackerId: attacker.sessionId,
+        targetId: id,
+        damage: weapon.damage,
+        killed
+      });
     }
   }
 

@@ -10,7 +10,10 @@ export type HomeAction =
   | { type: 'SET_HAIR_STYLE'; payload: string }
   | { type: 'SHOW_CUSTOMIZE' }
   | { type: 'HIDE_CUSTOMIZE' }
-  | { type: 'LOAD_PREFERENCES'; bodyType: string; hairStyle: string };
+  | { type: 'SHOW_EQUIPMENT_VIEWER' }
+  | { type: 'HIDE_EQUIPMENT_VIEWER' }
+  | { type: 'LOAD_PREFERENCES'; bodyType: string; hairStyle: string }
+  | { type: 'SET_MAP'; payload: string };
 
 export function homeReducer(state: HomeState, action: HomeAction): HomeState {
   switch (action.type) {
@@ -32,8 +35,14 @@ export function homeReducer(state: HomeState, action: HomeAction): HomeState {
       return { ...state, showCustomize: true };
     case 'HIDE_CUSTOMIZE':
       return { ...state, showCustomize: false };
+    case 'SHOW_EQUIPMENT_VIEWER':
+      return { ...state, showEquipmentViewer: true };
+    case 'HIDE_EQUIPMENT_VIEWER':
+      return { ...state, showEquipmentViewer: false };
     case 'LOAD_PREFERENCES':
       return { ...state, bodyType: action.bodyType, hairStyle: action.hairStyle };
+    case 'SET_MAP':
+      return { ...state, mapId: action.payload };
     default:
       return state;
   }

@@ -22,7 +22,7 @@ export function GameOverPage() {
 
   return (
     <div className={styles.gameOverPage}>
-      <h1>{isVictory ? '🏆 Victory Royale!' : 'Game Over'}</h1>
+      <h1>{isVictory ? '\uD83C\uDFC6 Victory Royale!' : 'Game Over'}</h1>
       <h2>
         {isVictory
           ? 'You are the last one standing!'

@@ -1,7 +1,8 @@
 // Types
-export type { Facing, PlayerInput, InputCommand } from './types/input.types';
+export type { PlayerInput, InputCommand } from './types/input.types';
 export type {
   GamePhase,
+  EquipmentSlot,
   PlayerSnapshot,
   ZoneSnapshot,
   ItemSnapshot,
@@ -17,20 +18,15 @@ export type {
   NpcHitEvent,
 } from './types/npc.types';
 
-
-
-// Constants
+// Constants — 3D world system
 export {
-  MAP_WIDTH,
-  MAP_HEIGHT,
-  TILE_SIZE,
-  MAP_TILES,
+  WORLD_SIZE,
+  WORLD_HALF_SIZE,
   PLAYER_SPEED,
+  SPAWN_HEIGHT,
   TICK_RATE,
   TICK_INTERVAL_MS,
   INPUT_SEND_RATE,
-  RECONCILE_SNAP_THRESHOLD_SQ,
-  RECONCILE_TELEPORT_THRESHOLD,
 } from './constants/game.constants';
 
 export type { WeaponConfig } from './constants/weapons.constants';
@@ -38,3 +34,16 @@ export { WEAPONS } from './constants/weapons.constants';
 
 export { NPC_SPAWN_COUNT, NPC_TYPES } from './constants/npc.constants';
 export type { NpcType } from './constants/npc.constants';
+
+// Constants — Equipment & Items
+export {
+  EQUIPMENT_SLOTS,
+  SLOT_LABELS,
+  SLOT_DEFAULTS,
+  ITEMS,
+} from './constants/equipment.constants';
+export type {
+  ItemRarity,
+  ItemSlotType,
+  ItemDefinition,
+} from './constants/equipment.constants';

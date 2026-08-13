@@ -1,14 +1,17 @@
 import { PlayerState } from '../schemas/player-state';
-import { Vector2 } from '../utils/math';
 import { SPAWN_POINTS } from '../config/map';
 
-export function getSpawnPoint(usedSpawns: Set<number>): Vector2 {
-  // Try to find an unused spawn point
+export interface Vector3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export function getSpawnPoint(usedSpawns: Set<number>): Vector3 {
   let availableIndices = Array.from({ length: SPAWN_POINTS.length }, (_, i) => i)
                               .filter(i => !usedSpawns.has(i));
   
   if (availableIndices.length === 0) {
-    // If all used, just pick a random one
     availableIndices = Array.from({ length: SPAWN_POINTS.length }, (_, i) => i);
   }
 
@@ -21,6 +24,7 @@ export function respawnPlayer(player: PlayerState, usedSpawns: Set<number>) {
   const spawn = getSpawnPoint(usedSpawns);
   player.x = spawn.x;
   player.y = spawn.y;
+  player.z = spawn.z;
   player.health = player.maxHealth;
   player.isAlive = true;
   player.weapon = 'fists';

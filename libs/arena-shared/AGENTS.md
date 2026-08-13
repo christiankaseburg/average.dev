@@ -56,10 +56,10 @@ src/
 #### `game.constants.ts`
 | Constant | Value | Description |
 |---|---|---|
-| `MAP_WIDTH` | `2048` | Map width in pixels |
-| `MAP_HEIGHT` | `2048` | Map height in pixels |
-| `TILE_SIZE` | `32` | Pixels per tile |
-| `MAP_TILES` | `64` | MAP_WIDTH / TILE_SIZE |
+| `WORLD_SIZE` | `2048` | Map width in pixels |
+| `WORLD_HALF_SIZE` | `2048` | Map height in pixels |
+| `WORLD_HALF_SIZE` | `32` | Pixels per tile |
+| `MAP_TILES` | `64` | WORLD_SIZE / WORLD_HALF_SIZE |
 | `PLAYER_SPEED` | `200` | px per second |
 | `TICK_RATE` | `20` | Server ticks per second |
 | `TICK_INTERVAL_MS` | `50` | 1000 / TICK_RATE |
@@ -70,11 +70,11 @@ src/
 #### `weapons.constants.ts`
 | Key | Damage | Range | Cooldown | Knockback |
 |---|---|---|---|---|
-| `fists` | 5 | 40 px | 500 ms | 10 px |
-| `sword` | 15 | 64 px | 800 ms | 20 px |
-| `dagger` | 10 | 32 px | 400 ms | 5 px |
-| `spear` | 12 | 64 px | 1000 ms | 30 px |
-| `bow` | 20 | 200 px | 1200 ms | 10 px |
+| `fists` | 5 | 4 units | 500 ms | 1 units |
+| `sword` | 15 | 6 units | 800 ms | 2 units |
+| `dagger` | 10 | 3 units | 400 ms | 0 units |
+| `spear` | 12 | 6 units | 1000 ms | 3 units |
+| `bow` | 20 | 20 units | 1200 ms | 1 units |
 
 ```typescript
 // WeaponConfig interface
@@ -93,7 +93,7 @@ interface WeaponConfig {
 
 | Consumer | What it uses |
 |---|---|
-| `apps/arena-api` | `InputCommand`, `WeaponConfig`, `WEAPONS`, `MAP_WIDTH`, `MAP_HEIGHT`, `PLAYER_SPEED`, `TICK_INTERVAL_MS`, `GameEventCallback` |
+| `apps/arena-api` | `InputCommand`, `WeaponConfig`, `WEAPONS`, `WORLD_SIZE`, `WORLD_SIZE`, `PLAYER_SPEED`, `TICK_INTERVAL_MS`, `GameEventCallback` |
 | `apps/arena-web` | `PlayerSnapshot`, `ZoneSnapshot`, `ItemSnapshot`, `PlayerAttackedEvent`, `PlayerHitEvent`, `ArenaRoomMetadata`, `InputCommand`, `Facing`, `WEAPONS`, all constants |
 
 ---

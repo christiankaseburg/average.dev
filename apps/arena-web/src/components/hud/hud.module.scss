@@ -4,8 +4,9 @@
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none; /* Let clicks pass through to Phaser */
+  pointer-events: none;
   z-index: 100;
+  font-family: 'Inter', sans-serif;
 }
 
 .topBar {
@@ -27,11 +28,10 @@
   min-width: 200px;
 }
 
-
 .centerInfo {
   font-size: 1.5rem;
   font-weight: 900;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
   background: rgba(0, 0, 0, 0.4);
   padding: 0.5rem 1.5rem;
   border-radius: 20px;
@@ -60,3 +60,92 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.controlsHint {
+  pointer-events: auto;
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1.25rem 1.75rem !important;
+  min-width: 320px;
+  text-align: center;
+}
+
+.controlsTitle {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.controlsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.controlItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+
+  kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 0.5rem;
+    background: rgba(var(--glass-input-bg-rgb), 0.85);
+    border: 1px solid rgba(var(--glass-input-border-rgb), 0.3);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  span {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    margin-left: 0.25rem;
+  }
+}
+
+.dismissBtn {
+  background: rgba(var(--color-primary-rgb), 0.2);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.4);
+  border-radius: 8px;
+  color: var(--color-text);
+  padding: 0.5rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(var(--color-primary-rgb), 0.4);
+  }
+}
+
+.titleBadge {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: var(--color-text);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.version {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  vertical-align: super;
+}

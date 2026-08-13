@@ -1,6 +1,8 @@
 import React from 'react';
 import { Button, TextInput, Panel } from '@average.dev/arena-ui';
-import { CustomizeCharacter } from '../../components/CustomizeCharacter/CustomizeCharacter';
+import { CharacterCustomization } from '../../components/customize-character/CharacterCustomization';
+import { EquipmentViewer } from '../../components/equipment-viewer/EquipmentViewer';
+import { getAllMaps } from '../../engine/world/maps';
 import { useHomeState } from './state/useHomeState';
 import styles from './HomePage.module.scss';
 
@@ -20,14 +22,24 @@ export function HomePage() {
     handleSaveCustomization,
   } = useHomeState();
 
+  const maps = getAllMaps();
+
   if (state.showCustomize) {
     return (
-      <CustomizeCharacter
+      <CharacterCustomization
         bodyType={state.bodyType}
         hairStyle={state.hairStyle}
         onBodyTypeChange={payload => dispatch({ type: 'SET_BODY_TYPE', payload })}
         onHairStyleChange={payload => dispatch({ type: 'SET_HAIR_STYLE', payload })}
         onSave={handleSaveCustomization}
+      />
+    );
+  }
+
+  if (state.showEquipmentViewer) {
+    return (
+      <EquipmentViewer
+        onClose={() => dispatch({ type: 'HIDE_EQUIPMENT_VIEWER' })}
       />
     );
   }
@@ -43,8 +55,24 @@ export function HomePage() {
           value={state.name}
           onChange={e => dispatch({ type: 'SET_NAME', payload: e.target.value })}
           maxLength={16}
-          style={{ marginBottom: '1.5rem' }}
+          style={{ marginBottom: '1rem' }}
         />
+
+        {/* Map selector */}
+        <div className={styles.mapSelector}>
+          <label className={styles.mapLabel}>Map</label>
+          <select
+            value={state.mapId}
+            onChange={e => dispatch({ type: 'SET_MAP', payload: e.target.value })}
+            className={styles.mapSelect}
+          >
+            {maps.map(m => (
+              <option key={m.id} value={m.id}>
+                {m.name} — {m.description}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {state.error && <div className={styles.error}>{state.error}</div>}
 
@@ -65,6 +93,15 @@ export function HomePage() {
             style={{ width: '100%' }}
           >
             Customize Character
+          </Button>
+
+          <Button
+            variant="secondary"
+            onClick={() => dispatch({ type: 'SHOW_EQUIPMENT_VIEWER' })}
+            disabled={state.connecting}
+            style={{ width: '100%' }}
+          >
+            Equipment Viewer
           </Button>
 
           <div className={styles.divider}><span>OR</span></div>

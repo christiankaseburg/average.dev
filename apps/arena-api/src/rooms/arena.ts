@@ -6,16 +6,14 @@ import { ZoneState } from '../schemas/zone-state';
 import { ItemState } from '../schemas/item-state';
 import { NpcState } from '../schemas/npc-state';
 import { GameLoop } from '../systems/game-loop';
-import { spawnChests } from '../systems/loot';
-import { spawnNpcs } from '../systems/npc-spawner';
-import { getSpawnPoint, respawnPlayer } from '../systems/spawn';
-import { generateCollisionGrid, CollisionGrid } from '../config/map';
+import { respawnPlayer } from '../systems/spawn';
+import { WORLD_SIZE } from '@average.dev/arena-shared';
 import { sanitizeInput, InputCommand } from '../utils/validation';
 import { ArenaRoomOptions } from './types';
+import { handleAdminSpawn, handleUnequip } from '../systems/loot';
 
 export class ArenaRoom extends Room<{ state: GameState }> {
   private gameLoop!: GameLoop;
-  private collisionGrid!: CollisionGrid;
   private usedSpawns = new Set<number>();
   private playerInputs = new Map<string, InputCommand>();
 
@@ -37,16 +35,17 @@ export class ArenaRoom extends Room<{ state: GameState }> {
       phase: "waiting",
       aliveCount: 0,
       gameTime: 0,
-      winnerId: ""
+      winnerId: "",
+      worldSize: WORLD_SIZE,
     });
     
     state.zone.assign({
-      currentCenterX: 1024,
-      currentCenterY: 1024,
-      currentRadius: 2000,
-      targetCenterX: 1024,
-      targetCenterY: 1024,
-      targetRadius: 2000,
+      currentCenterX: 0,
+      currentCenterZ: 0,
+      currentRadius: WORLD_SIZE,
+      targetCenterX: 0,
+      targetCenterZ: 0,
+      targetRadius: WORLD_SIZE,
       shrinkStartTime: 0,
       shrinkDuration: 0,
       damagePerSecond: 0,
@@ -54,19 +53,15 @@ export class ArenaRoom extends Room<{ state: GameState }> {
     });
 
     this.setState(state);
-    // Init Game
-    this.collisionGrid = generateCollisionGrid();
-    this.gameLoop = new GameLoop(this.collisionGrid, true, (eventName, data) => {
+
+    this.gameLoop = new GameLoop(true, (eventName, data) => {
        this.broadcast(eventName, data);
     });
     
-    spawnChests(this.state);
-    spawnNpcs(this.state.npcs);
     
     this.state.phase = 'waiting';
 
-
-    // Handle Input
+    // Handle combat input (attack, interact)
     this.onMessage("input", (client, data) => {
       const sanitized = sanitizeInput(data);
       const existing = this.playerInputs.get(client.sessionId);
@@ -77,10 +72,33 @@ export class ArenaRoom extends Room<{ state: GameState }> {
       this.playerInputs.set(client.sessionId, sanitized);
     });
 
+    // Handle 3D position updates from clients (Rapier physics)
+    this.onMessage("position", (client, data: { x: number; y: number; z: number; rotationY?: number }) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player || !player.isAlive) return;
+      if (typeof data.x === 'number') player.x = data.x;
+      if (typeof data.y === 'number') player.y = data.y;
+      if (typeof data.z === 'number') player.z = data.z;
+      if (typeof data.rotationY === 'number') player.rotationY = data.rotationY;
+    });
+
+    // Handle admin item spawning
+    this.onMessage("admin_spawn", (client, data: { itemType: string }) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player) return;
+      handleAdminSpawn(player, data.itemType, this.state);
+    });
+
+    // Handle item unequip/drop
+    this.onMessage("unequip", (client, data: { slot: string }) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player) return;
+      handleUnequip(player, data.slot, this.state);
+    });
+
     // 20 Hz tick
     this.setSimulationInterval((deltaTime) => {
       this.gameLoop.tick(this.state, deltaTime, this.playerInputs);
-      // Clear one-time actions
       for (const input of this.playerInputs.values()) {
         input.attack = false;
         input.interact = false;
@@ -97,11 +115,13 @@ export class ArenaRoom extends Room<{ state: GameState }> {
       deviceType: options.deviceType || "desktop",
       x: 0,
       y: 0,
-      facing: "down",
+      z: 0,
       health: 100,
       maxHealth: 100,
       weapon: "fists",
       armor: "none",
+      legs: "none",
+      equippedHair: "none",
       kills: 0,
       isAlive: true,
       lastProcessedInputSeq: 0,
@@ -113,12 +133,9 @@ export class ArenaRoom extends Room<{ state: GameState }> {
     
     this.state.players.set(client.sessionId, player);
 
-    // Auto-start if enough players
     if (this.state.phase === 'waiting' && this.state.players.size >= 2) {
       this.state.phase = 'countdown';
-      this.state.gameTime = 0; // reset to 0 for countdown
-      // Lock room if we want to prevent late joiners
-      // this.lock();
+      this.state.gameTime = 0;
     }
   }
 
@@ -126,12 +143,9 @@ export class ArenaRoom extends Room<{ state: GameState }> {
     console.log(client.sessionId, "left!");
     const player = this.state.players.get(client.sessionId);
     if (player) {
-      player.isAlive = false; // They die if they disconnect
+      player.isAlive = false;
     }
     this.playerInputs.delete(client.sessionId);
-    
-    // Optional: allow reconnect
-    // this.allowReconnection(client, 20);
   }
 
   onDispose() {

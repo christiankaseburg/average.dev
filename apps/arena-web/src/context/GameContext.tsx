@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, ReactNode } from 'react';
 import { Room } from '@colyseus/sdk';
 import { StateHandler } from '../network/state-handler';
+import { getDefaultMapId } from '../engine/world/maps';
 
 // ---------------------------------------------------------------------------
 // State
@@ -10,12 +11,14 @@ export type GameContextState = {
   room: Room | null;
   stateHandler: StateHandler | null;
   winner: string;
+  mapId: string;
 };
 
 const initialGameState: GameContextState = {
   room: null,
   stateHandler: null,
   winner: '',
+  mapId: getDefaultMapId(),
 };
 
 // ---------------------------------------------------------------------------
@@ -25,7 +28,8 @@ const initialGameState: GameContextState = {
 type GameContextAction =
   | { type: 'JOIN_ROOM'; room: Room; stateHandler: StateHandler }
   | { type: 'LEAVE_ROOM' }
-  | { type: 'SET_WINNER'; winner: string };
+  | { type: 'SET_WINNER'; winner: string }
+  | { type: 'SET_MAP'; mapId: string };
 
 // ---------------------------------------------------------------------------
 // Reducer
@@ -37,11 +41,13 @@ function gameContextReducer(
 ): GameContextState {
   switch (action.type) {
     case 'JOIN_ROOM':
-      return { room: action.room, stateHandler: action.stateHandler, winner: '' };
+      return { ...state, room: action.room, stateHandler: action.stateHandler, winner: '' };
     case 'LEAVE_ROOM':
-      return { ...initialGameState };
+      return { ...initialGameState, mapId: state.mapId };
     case 'SET_WINNER':
       return { ...state, winner: action.winner };
+    case 'SET_MAP':
+      return { ...state, mapId: action.mapId };
     default:
       return state;
   }
@@ -59,6 +65,8 @@ interface GameContextValue {
   leaveRoom: () => void;
   /** Record the winning session ID after the game ends. */
   setWinner: (winner: string) => void;
+  /** Set the active map by id. */
+  setMap: (mapId: string) => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -74,24 +82,28 @@ interface GameProviderProps {
 export function GameProvider({ children }: GameProviderProps) {
   const [state, dispatch] = useReducer(gameContextReducer, initialGameState);
 
-  const joinRoom = (room: Room) => {
+  const joinRoom = useCallback((room: Room) => {
     const stateHandler = new StateHandler(room);
     dispatch({ type: 'JOIN_ROOM', room, stateHandler });
-  };
+  }, []);
 
-  const leaveRoom = () => {
+  const leaveRoom = useCallback(() => {
     if (state.room) {
       state.room.leave();
     }
     dispatch({ type: 'LEAVE_ROOM' });
-  };
+  }, [state.room]);
 
-  const setWinner = (winner: string) => {
+  const setWinner = useCallback((winner: string) => {
     dispatch({ type: 'SET_WINNER', winner });
-  };
+  }, []);
+
+  const setMap = useCallback((mapId: string) => {
+    dispatch({ type: 'SET_MAP', mapId });
+  }, []);
 
   return (
-    <GameContext.Provider value={{ state, joinRoom, leaveRoom, setWinner }}>
+    <GameContext.Provider value={{ state, joinRoom, leaveRoom, setWinner, setMap }}>
       {children}
     </GameContext.Provider>
   );
@@ -102,8 +114,8 @@ export function GameProvider({ children }: GameProviderProps) {
 // ---------------------------------------------------------------------------
 
 /**
- * Access the active game room, stateHandler, and winner from any component
- * inside <GameProvider>. Throws if used outside the provider.
+ * Access the active game room, stateHandler, winner, and map selection
+ * from any component inside <GameProvider>. Throws if used outside the provider.
  */
 export function useGame(): GameContextValue {
   const ctx = useContext(GameContext);

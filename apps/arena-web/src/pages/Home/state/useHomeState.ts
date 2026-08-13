@@ -11,23 +11,17 @@ export type { HomeAction } from './reducer';
 
 /**
  * useHomeState — orchestrates the Home page's state and async side effects.
- *
- * Dependency graph:
- *   useHomeState  →  homeReducer  →  HomeState
- *                 →  initialState
- *                 →  GameContext (joinRoom)
- *                 →  react-router (useNavigate)
- *                 →  network/client (room joining)
  */
 export function useHomeState() {
   const [state, dispatch] = useReducer(homeReducer, initialState);
-  const { joinRoom } = useGame();
+  const { joinRoom, setMap } = useGame();
   const navigate = useNavigate();
 
   // Load persisted character preferences on mount
   useEffect(() => {
     const savedBody = localStorage.getItem('arena_bodyType');
     const savedHair = localStorage.getItem('arena_hairStyle');
+    const savedMap = localStorage.getItem('arena_mapId');
     if (savedBody || savedHair) {
       dispatch({
         type: 'LOAD_PREFERENCES',
@@ -35,7 +29,16 @@ export function useHomeState() {
         hairStyle: savedHair ?? initialState.hairStyle,
       });
     }
+    if (savedMap) {
+      dispatch({ type: 'SET_MAP', payload: savedMap });
+    }
   }, []);
+
+  // Sync map selection to GameContext whenever it changes
+  useEffect(() => {
+    setMap(state.mapId);
+    localStorage.setItem('arena_mapId', state.mapId);
+  }, [state.mapId, setMap]);
 
   const deviceType = detectDeviceType();
 
@@ -111,7 +114,6 @@ export function useHomeState() {
   };
 
   const handleSaveCustomization = () => {
-    // Side effect: persist to localStorage (kept out of reducer — reducers must be pure)
     localStorage.setItem('arena_bodyType', state.bodyType);
     localStorage.setItem('arena_hairStyle', state.hairStyle);
     dispatch({ type: 'HIDE_CUSTOMIZE' });

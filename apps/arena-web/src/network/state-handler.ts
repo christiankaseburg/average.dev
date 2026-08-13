@@ -1,5 +1,5 @@
 import { Room } from '@colyseus/sdk';
-import Phaser from 'phaser';
+import { TypedEventEmitter } from './TypedEventEmitter';
 import type {
   PlayerSnapshot,
   ItemSnapshot,
@@ -27,7 +27,7 @@ interface RawGameState {
 }
 
 /**
- * StateHandler bridges the Colyseus server state to the Phaser game scene.
+ * StateHandler bridges the Colyseus server state to the game rendering layer.
  *
  * ## Why onStateChange instead of onAdd/onChange/onRemove?
  *
@@ -37,9 +37,9 @@ interface RawGameState {
  * `MapSchema` instances (server side). So we use `room.onStateChange`, which fires
  * on every patch, and manually diff the state to emit the correct events.
  *
- * Extends Phaser.Events.EventEmitter so game scenes can subscribe with .on()/.off().
+ * Extends TypedEventEmitter so game components and hooks can subscribe with .on()/.off().
  */
-export class StateHandler extends Phaser.Events.EventEmitter {
+export class StateHandler extends TypedEventEmitter {
   private readonly room: Room;
 
   // Track which entities we know about so we can detect adds and removes.
@@ -109,16 +109,13 @@ export class StateHandler extends Phaser.Events.EventEmitter {
           currentNpcs.add(id);
 
           if (!this.knownNpcs.has(id)) {
-            // NPC spawned (or first state patch after joining)
             this.knownNpcs.add(id);
             this.emit('npcAdd', id, npc);
           } else {
-            // NPC state updated (position, action, health changed)
             this.emit('npcUpdate', id, npc);
           }
         });
 
-        // Detect despawned NPCs (killed, removed by server)
         for (const id of this.knownNpcs) {
           if (!currentNpcs.has(id)) {
             this.knownNpcs.delete(id);
@@ -142,8 +139,6 @@ export class StateHandler extends Phaser.Events.EventEmitter {
     });
 
     // ── Combat broadcast messages ──────────────────────────────────────────
-    // These use the WebSocket message bus (not schema state), so they are safe
-    // to register immediately without waiting for any state patch.
     this.room.onMessage('player_attacked', (data: PlayerAttackedEvent) => {
       this.emit('playerAttacked', data);
     });

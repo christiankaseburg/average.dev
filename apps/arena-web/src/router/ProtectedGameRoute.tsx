@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 
@@ -7,15 +7,15 @@ interface ProtectedGameRouteProps {
 }
 
 /**
- * Redirects to / if no active room exists in GameContext.
- * Prevents direct URL access to /game or /gameover without a session.
+ * Route guard that redirects to home if the user has no active Colyseus room.
+ * Used to protect /game and /gameover routes.
  */
 export function ProtectedGameRoute({ children }: ProtectedGameRouteProps) {
   const { state } = useGame();
 
-  if (!state.room) {
+  if (!state.room || !state.stateHandler) {
     return <Navigate to="/" replace />;
   }
 
-  return children;
+  return <>{children}</>;
 }

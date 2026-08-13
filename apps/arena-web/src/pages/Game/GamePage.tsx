@@ -1,11 +1,15 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GameCanvas } from '../../components/game-canvas/game-canvas';
-import { HUD } from '../../components/hud/hud';
+import { GameCanvas } from '../../components/game-canvas/GameCanvas';
+import { HUD } from '../../components/hud/HUD';
+import { MobileControls } from '../../components/mobile-controls/MobileControls';
 import { useGame } from '../../context/GameContext';
+import { ItemProvider } from '../../context/ItemContext';
+import { AdminPanel } from '../../components/admin-panel/AdminPanel';
+import { EquipmentHUD } from '../../components/hud/EquipmentHUD';
 
 /**
- * Game page — renders the Phaser canvas and HUD overlay.
+ * Game page — renders the Three.js 3D canvas, HUD overlay, and mobile controls.
  * Listens for game phase 'ended' to navigate to /gameover.
  * Guarded by ProtectedGameRoute so state.stateHandler is always non-null here.
  */
@@ -40,9 +44,12 @@ export function GamePage() {
   if (!state.stateHandler) return null;
 
   return (
-    <>
-      <GameCanvas stateHandler={state.stateHandler} />
+    <ItemProvider stateHandler={state.stateHandler}>
+      <GameCanvas />
       <HUD stateHandler={state.stateHandler} onLeave={handleLeave} />
-    </>
+      <AdminPanel />
+      <EquipmentHUD />
+      <MobileControls />
+    </ItemProvider>
   );
 }
